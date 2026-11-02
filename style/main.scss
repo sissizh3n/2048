@@ -1,5 +1,5 @@
 @import "helpers";
-@import "fonts/clear-sans.css";
+@import "fonts/hadestown-fonts.css";
 
 $field-width: 500px;
 $grid-spacing: 15px;
@@ -9,42 +9,291 @@ $tile-border-radius: 3px;
 
 $mobile-threshold: $field-width + 20px;
 
-$text-color: #776E65;
-$bright-text-color: #f9f6f2;
+$cream: #f4ead7;
+$ink: #15100a;
 
-$tile-color: #eee4da;
-$tile-gold-color: #edc22e;
-$tile-gold-glow-color: lighten($tile-gold-color, 15%);
+$font-display: "Alfa Slab One", Georgia, serif;
+$font-type: "Special Elite", "Courier New", monospace;
+$font-body: "Spectral", Georgia, serif;
 
 $game-container-margin-top: 40px;
-$game-container-background: #bbada0;
 
 $transition-speed: 100ms;
+
+// Builds a data-URI SVG. Used as a mask, so shapes only need an alpha channel.
+@function svg($body, $view-box: "0 0 64 64") {
+  @return url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='#{$view-box}'>#{$body}</svg>");
+}
+
+$flower: "<g><ellipse cx='32' cy='15' rx='9' ry='13'/><ellipse cx='32' cy='15' rx='9' ry='13' transform='rotate(72 32 32)'/><ellipse cx='32' cy='15' rx='9' ry='13' transform='rotate(144 32 32)'/><ellipse cx='32' cy='15' rx='9' ry='13' transform='rotate(216 32 32)'/><ellipse cx='32' cy='15' rx='9' ry='13' transform='rotate(288 32 32)'/></g>";
+
+$icon-cup: svg("<path d='M16 6h32l-4 30a12 12 0 0 1-24 0z'/><path d='M29 46h6v8h-6z'/><path d='M18 54h28v5H18z'/>");
+$icon-flower: svg($flower);
+$icon-sun: svg("<circle cx='32' cy='32' r='14'/><g stroke='black' stroke-width='5' stroke-linecap='round'><path d='M32 4v8M32 52v8M4 32h8M52 32h8M12 12l6 6M46 46l6 6M12 52l6-6M46 18l6-6'/></g>");
+$icon-leaf: svg("<path d='M54 8C26 8 8 24 14 50c26 6 44-12 40-42z'/><path d='M6 60l6-8' stroke='black' stroke-width='5' stroke-linecap='round'/>");
+$icon-snow: svg("<g stroke='black' stroke-width='5' stroke-linecap='round' fill='none'><path d='M32 4v56M8 18l48 28M8 46l48-28'/><path d='M24 10l8 8 8-8M24 54l8-8 8 8M6 28l11 3-3 11M58 36l-11-3 3-11M6 36l11-3-3-11M58 28l-11 3 3 11'/></g>");
+$icon-rail: svg("<path d='M18 2h6v60h-6zM40 2h6v60h-6z'/><path d='M10 8h44v5H10zM10 21h44v5H10zM10 34h44v5H10zM10 47h44v5H10z'/>");
+$icon-wall: svg("<path d='M4 8h26v12H4zM34 8h26v12H34zM4 40h26v12H4zM34 40h26v12H34z'/><path d='M4 24h10v12H4zM18 24h28v12H18zM50 24h10v12H50z'/>");
+$icon-cog: svg("<circle cx='32' cy='32' r='22' fill='none' stroke='black' stroke-width='9' stroke-dasharray='8.6 8.7'/><circle cx='32' cy='32' r='17' fill='none' stroke='black' stroke-width='9'/>");
+$icon-crown: svg("<path d='M6 52V16l13 16L32 8l13 24 13-16v36z'/><path d='M6 56h52v4H6z'/>");
+$icon-lantern: svg("<path d='M24 2h16v4H24z'/><path d='M22 8h20l4 8H18z'/><path fill-rule='evenodd' d='M20 18h24v30H20zM25 23v20h14V23z'/><circle cx='32' cy='33' r='5'/><path d='M16 50h32v6H16z'/>");
+$icon-star: svg("<path d='M32 3l8.5 19.6L62 25l-16 14.4L50.500 60 32 49.300 13.500 60 18 39.400 2 25l21.500-2.400z'/>");
+
+// One stop per tile, in story order. Each sets the tile and the whole stage.
+//   walls:  the show's rotted blue-green plaster, which reads as sky in summer
+//   lamps:  warm above ground, cold below, a single light on the walk out
+$stops:
+  (name: "The Bar",      value: 2,    bg: #e3bd83, fg: #2b1a0c, top: #0d2c2e, bottom: #1c4f4d, floor: #4a2c15, accent: #eeb25a, lamp: #ffc36b, power: .3, side: 1, icon: $icon-cup),
+  (name: "The Flower",   value: 4,    bg: #f3e6d0, fg: #a31621, top: #0d2c2e, bottom: #1c4f4d, floor: #4a2c15, accent: #f2a79a, lamp: #ffc36b, power: .3, side: 1, icon: $icon-flower),
+  (name: "Summer",       value: 8,    bg: #2c7a44, fg: #fff8e7, top: #125054, bottom: #17605a, floor: #54351a, accent: #f6cf64, lamp: #ffe08a, power: .34,  side: 1, icon: $icon-sun),
+  (name: "Autumn",       value: 16,   bg: #ad4f17, fg: #fff8ea, top: #1a3032, bottom: #54361f, floor: #3a2211, accent: #eb9a4e, lamp: #ff9d4d, power: .28,  side: 1, icon: $icon-leaf),
+  (name: "Winter",       value: 32,   bg: #c2d6e0, fg: #122733, top: #0e1d27, bottom: #2c4453, floor: #27272a, accent: #bcd8e6, lamp: #bcdcf0, power: .2, side: 1, icon: $icon-snow),
+  (name: "The Railroad", value: 64,   bg: #474c52, fg: #f6e9cf, top: #121416, bottom: #30353a, floor: #1d1d1e, accent: #dcae55, lamp: #d9b98a, power: .18, side: 1, icon: $icon-rail),
+  (name: "The Wall",     value: 128,  bg: #606b74, fg: #ffffff, top: #0e1012, bottom: #363d43, floor: #18191b, accent: #b9c4cb, lamp: #cfdbe4, power: .2,  side: 1, icon: $icon-wall),
+  (name: "The Mine",     value: 256,  bg: #1f0e06, fg: #ff8f47, top: #0a0706, bottom: #3f1607, floor: #150b07, accent: #ff8a3d, lamp: #ff6a1f, power: .26, side: 1, icon: $icon-cog),
+  (name: "Hades",        value: 512,  bg: #09090b, fg: #e9edf0, top: #040405, bottom: #15181c, floor: #070708, accent: #dbe1e5, lamp: #dbe6ee, power: .14,  side: .35, icon: $icon-crown),
+  (name: "The Walk",     value: 1024, bg: #f7e9bb, fg: #1a1408, top: #040507, bottom: #0e1820, floor: #06080a, accent: #f7e4ac, lamp: #ffe9ae, power: .34,  side: 0, icon: $icon-lantern),
+  (name: "Spring",       value: 2048, bg: #bb1120, fg: #fff5e1, top: #0f3a2a, bottom: #27633a, floor: #4f3219, accent: #fbe48c, lamp: #fff0a8, power: .36, side: 1, icon: $icon-flower);
+
+$encore: (name: "Encore", bg: #e6b63f, fg: #1b1205, top: #0d2c2e, bottom: #1c4f4d, floor: #4a2c15, accent: #eeb25a, lamp: #ffc36b, power: .32, side: 1, icon: $icon-star);
+
+$first-stop: nth($stops, 1);
+
+// Registered so the stage cross-fades between stops instead of jumping
+@property --wall-top {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #0d2c2e;
+}
+
+@property --wall-bottom {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #1c4f4d;
+}
+
+@property --floor {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4a2c15;
+}
+
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #eeb25a;
+}
+
+@property --lamp {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ffc36b;
+}
+
+@property --lamp-power {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: .3;
+}
+
+@mixin stage-colors($stop) {
+  --wall-top: #{map-get($stop, top)};
+  --wall-bottom: #{map-get($stop, bottom)};
+  --floor: #{map-get($stop, floor)};
+  --accent: #{map-get($stop, accent)};
+  --lamp: #{map-get($stop, lamp)};
+  --lamp-power: #{map-get($stop, power)};
+  --side-lamps: #{map-get($stop, side)};
+}
+
+html {
+  @include stage-colors($first-stop);
+  --stop: 1;
+
+  -webkit-transition: --wall-top 1.4s ease, --wall-bottom 1.4s ease, --floor 1.4s ease, --accent 1.4s ease, --lamp 1.4s ease, --lamp-power 1.4s ease;
+  transition: --wall-top 1.4s ease, --wall-bottom 1.4s ease, --floor 1.4s ease, --accent 1.4s ease, --lamp 1.4s ease, --lamp-power 1.4s ease;
+}
 
 html, body {
   margin: 0;
   padding: 0;
 
-  background: #faf8ef;
-  color: $text-color;
-  font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
+  color: $cream;
+  font-family: $font-body;
   font-size: 18px;
+  font-synthesis: none;
+}
+
+html {
+  background: var(--wall-top);
 }
 
 body {
   margin: 80px 0;
 }
 
+// The stage: everything behind the game, fixed to the viewport
+.stage {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--wall-top), var(--wall-bottom));
+
+  // Water-stained plaster
+  &:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    opacity: .55;
+    background-size: 520px 520px;
+    background-image: svg("<filter id='p' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='.011 .035' numOctaves='4' seed='7' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.6 -.62'/></filter><rect width='400' height='400' filter='url(%23p)'/>", "0 0 400 400");
+  }
+}
+
+// The revolve: concentric risers turning slowly behind the board
+.revolve {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1200px;
+  height: 1200px;
+  margin: -600px 0 0 -600px;
+  opacity: .1;
+  background: var(--accent);
+  -webkit-mask: svg("<g fill='none' stroke='black'><circle cx='300' cy='300' r='295' stroke-width='2'/><circle cx='300' cy='300' r='270' stroke-width='6' stroke-dasharray='2 22'/><circle cx='300' cy='300' r='240' stroke-width='2'/><circle cx='300' cy='300' r='205' stroke-width='14' stroke-dasharray='60 12 6 12'/><circle cx='300' cy='300' r='180' stroke-width='2'/></g>", "0 0 600 600") center / contain no-repeat;
+  mask: svg("<g fill='none' stroke='black'><circle cx='300' cy='300' r='295' stroke-width='2'/><circle cx='300' cy='300' r='270' stroke-width='6' stroke-dasharray='2 22'/><circle cx='300' cy='300' r='240' stroke-width='2'/><circle cx='300' cy='300' r='205' stroke-width='14' stroke-dasharray='60 12 6 12'/><circle cx='300' cy='300' r='180' stroke-width='2'/></g>", "0 0 600 600") center / contain no-repeat;
+  @include animation(revolve 240s linear infinite);
+}
+
+@include keyframes(revolve) {
+  100% {
+    @include transform(rotate(360deg));
+  }
+}
+
+// Swinging lamps
+.lamp {
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 46px;
+  background: #050403;
+  -webkit-transform-origin: top center;
+  transform-origin: top center;
+  @include animation(sway 5s ease-in-out infinite alternate);
+  @include transition(opacity 1.4s ease);
+
+  // Shade
+  &:before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: -17px;
+    width: 36px;
+    height: 16px;
+    border-radius: 36px 36px 0 0;
+    background: #0b0907;
+    box-shadow: 0 3px 10px 0 var(--lamp);
+  }
+
+  // Pool of light
+  &:after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: -400px;
+    width: 800px;
+    height: 680px;
+    opacity: var(--lamp-power);
+    background: conic-gradient(from 150deg at 50% 0, transparent 0deg, var(--lamp) 24deg, var(--lamp) 36deg, transparent 60deg, transparent 360deg);
+    -webkit-mask-image: linear-gradient(to bottom, black, transparent 92%);
+    mask-image: linear-gradient(to bottom, black, transparent 92%);
+  }
+
+  &:nth-child(1), &:nth-child(3) {
+    opacity: var(--side-lamps);
+  }
+
+  &:nth-child(1) {
+    left: 10%;
+    height: 62px;
+    -webkit-animation-delay: -2.2s;
+    animation-delay: -2.2s;
+  }
+
+  &:nth-child(2) {
+    left: 50%;
+    height: 34px;
+  }
+
+  &:nth-child(3) {
+    left: 90%;
+    height: 54px;
+    -webkit-animation-delay: -3.8s;
+    animation-delay: -3.8s;
+  }
+}
+
+@include keyframes(sway) {
+  0% {
+    @include transform(rotate(-2.5deg));
+  }
+
+  100% {
+    @include transform(rotate(2.5deg));
+  }
+}
+
+// The beer-stained wood floor
+.floor {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 58px;
+  border-top: 2px solid rgba(0, 0, 0, .55);
+  background:
+    radial-gradient(ellipse 90px 12px at 22% 60%, rgba(0, 0, 0, .28), transparent),
+    radial-gradient(ellipse 130px 10px at 71% 34%, rgba(0, 0, 0, .24), transparent),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .34) 0, rgba(0, 0, 0, .34) 1px, transparent 1px, transparent 14px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .26) 0, rgba(0, 0, 0, .26) 2px, transparent 2px, transparent 137px),
+    var(--floor);
+}
+
 .heading {
   @include clearfix;
 }
 
+.title-block {
+  float: left;
+}
+
+.kicker {
+  margin: 0;
+  font-family: $font-type;
+  font-size: 13px;
+  line-height: 1.2;
+  letter-spacing: .08em;
+  color: var(--accent);
+}
+
 h1.title {
-  font-size: 80px;
-  font-weight: bold;
+  font-family: $font-display;
+  font-size: 76px;
+  font-weight: normal;
+  line-height: 1.05;
+  letter-spacing: .01em;
   margin: 0;
   display: block;
-  float: left;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, .4);
 }
 
 @include keyframes(move-up) {
@@ -69,37 +318,38 @@ h1.title {
 
   position: relative;
   display: inline-block;
-  background: $game-container-background;
-  padding: 15px 25px;
-  font-size: $height;
+  background: rgba(0, 0, 0, .42);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  padding: 15px 22px;
+  font-family: $font-display;
+  font-size: $height - 3px;
   height: $height;
   line-height: $height + 22px;
-  font-weight: bold;
-  border-radius: 3px;
-  color: white;
-  margin-top: 8px;
+  border-radius: 2px;
+  color: $cream;
+  margin-top: 16px;
   text-align: center;
 
   &:after {
     position: absolute;
     width: 100%;
-    top: 10px;
+    top: 9px;
     left: 0;
     text-transform: uppercase;
-    font-size: 13px;
+    font-family: $font-type;
+    font-size: 12px;
     line-height: 13px;
+    letter-spacing: .1em;
     text-align: center;
-    color: $tile-color;
+    color: var(--accent);
   }
 
   .score-addition {
     position: absolute;
     right: 30px;
-    color: red;
     font-size: $height;
     line-height: $height;
-    font-weight: bold;
-    color: rgba($text-color, .9);
+    color: var(--accent);
     z-index: 100;
     @include animation(move-up 600ms ease-in);
     @include animation-fill-mode(both);
@@ -117,32 +367,49 @@ h1.title {
 p {
   margin-top: 0;
   margin-bottom: 10px;
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 a {
-  color: $text-color;
-  font-weight: bold;
+  color: $cream;
+  font-weight: 600;
   text-decoration: underline;
   cursor: pointer;
 }
 
 strong {
+  font-weight: 600;
+  color: var(--accent);
+
   &.important {
+    font-family: $font-type;
+    font-weight: normal;
+    letter-spacing: .06em;
     text-transform: uppercase;
   }
 }
 
 hr {
   border: none;
-  border-bottom: 1px solid lighten($text-color, 40%);
+  border-bottom: 1px solid rgba($cream, .25);
   margin-top: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 26px;
 }
 
 .container {
+  position: relative;
   width: $field-width;
   margin: 0 auto;
+  padding-bottom: 60px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 @include keyframes(fade-in) {
@@ -158,14 +425,21 @@ hr {
 // Styles for buttons
 @mixin button {
   display: inline-block;
-  background: darken($game-container-background, 20%);
-  border-radius: 3px;
-  padding: 0 20px;
+  background: var(--accent);
+  border-radius: 2px;
+  padding: 0 18px;
+  font-family: $font-type;
+  font-weight: normal;
+  letter-spacing: .03em;
   text-decoration: none;
-  color: $bright-text-color;
+  color: $ink;
   height: 40px;
-  line-height: 42px;
+  line-height: 43px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, .5);
 }
+
+// Wrought-iron strip, the ornamental ironwork of the show's doorways
+$ironwork: svg("<path d='M0 1h48M0 15h48' stroke='black' stroke-width='1.500' fill='none'/><path d='M0 8c6-8 18-8 24 0s18 8 24 0M0 8c6 8 18 8 24 0s18-8 24 0' stroke='black' stroke-width='1.800' fill='none'/><circle cx='12' cy='8' r='1.800'/><circle cx='36' cy='8' r='1.800'/>", "0 0 48 16");
 
 // Game field mixin used to render CSS at different width
 @mixin game-field {
@@ -185,8 +459,9 @@ hr {
     -ms-touch-action: none;
     touch-action: none;
 
-    background: $game-container-background;
-    border-radius: $tile-border-radius * 2;
+    background: rgba(5, 4, 3, .62);
+    box-shadow: 0 0 0 1px var(--accent), 0 18px 40px rgba(0, 0, 0, .45);
+    border-radius: $tile-border-radius;
     width: $field-width;
     height: $field-width;
     -webkit-box-sizing: border-box;
@@ -201,22 +476,23 @@ hr {
       right: 0;
       bottom: 0;
       left: 0;
-      background: rgba($tile-color, .5);
+      overflow: hidden;
+      background: rgba(4, 6, 8, .86);
       z-index: 100;
 
       text-align: center;
 
       p {
-        font-size: 60px;
-        font-weight: bold;
+        position: relative;
+        font-family: $font-display;
+        font-size: 46px;
         height: 60px;
         line-height: 60px;
         margin-top: 222px;
-        // height: $field-width;
-        // line-height: $field-width;
       }
 
       .lower {
+        position: relative;
         display: block;
         margin-top: 59px;
       }
@@ -224,28 +500,60 @@ hr {
       a {
         @include button;
         margin-left: 9px;
-        // margin-top: 59px;
 
-	&.keep-playing-button {
-	  display: none;
-	}
+        &.keep-playing-button {
+          display: none;
+        }
       }
 
       @include animation(fade-in 800ms ease $transition-speed * 12);
       @include animation-fill-mode(both);
 
       &.game-won {
-        background: rgba($tile-gold-color, .5);
-        color: $bright-text-color;
+        background: rgba(13, 52, 32, .88);
+        color: $cream;
 
-	a.keep-playing-button {
-	  display: inline-block;
-	}
+        a.keep-playing-button {
+          display: inline-block;
+        }
+
+        // Falling petals, from the border of the show's poster
+        &:before {
+          content: "";
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+          background-size: 300px 300px;
+          background-image: svg("<g fill='%23d9202f'><path d='M30 20c12-8 22-2 20 8-10 6-20 2-20-8z'/><path d='M180 60c10-12 22-10 24 0-8 10-20 10-24 0z'/><path d='M100 130c12-6 20 2 16 12-10 4-20-2-16-12z'/><path d='M250 170c8-12 22-12 24-2-6 10-20 12-24 2z'/><path d='M50 230c12-8 22 0 18 10-10 4-20-2-18-10z'/><path d='M190 260c10-10 22-6 22 4-8 8-20 8-22-4z'/></g>", "0 0 300 300");
+          @include animation(petals 16s linear infinite);
+        }
       }
 
       &.game-won, &.game-over {
         display: block;
       }
+    }
+
+    // Ironwork above and below the board
+    &:before, &:after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: $grid-spacing + 1px;
+      background: var(--accent);
+      -webkit-mask: $ironwork left center / auto 100% repeat-x;
+      mask: $ironwork left center / auto 100% repeat-x;
+    }
+
+    &:before {
+      top: -($grid-spacing + 8px);
+    }
+
+    &:after {
+      bottom: -($grid-spacing + 8px);
     }
   }
 
@@ -276,7 +584,8 @@ hr {
 
     border-radius: $tile-border-radius;
 
-    background: rgba($tile-color, .35);
+    background: rgba($cream, .06);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, .55);
 
     &:last-child {
       margin-right: 0;
@@ -308,21 +617,76 @@ hr {
   }
 }
 
+@include keyframes(petals) {
+  100% {
+    background-position: 40px 300px;
+  }
+}
+
 // End of game-field mixin
 @include game-field;
+
+@mixin tile-face($stop) {
+  background: map-get($stop, bg);
+  color: map-get($stop, fg);
+
+  &:before {
+    -webkit-mask-image: map-get($stop, icon);
+    mask-image: map-get($stop, icon);
+  }
+
+  &:after {
+    content: "#{map-get($stop, name)}";
+  }
+}
 
 .tile {
   position: absolute; // Makes transforms relative to the top-left corner
 
   .tile-inner {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     border-radius: $tile-border-radius;
 
-    background: $tile-color;
+    font-family: $font-display;
     text-align: center;
-    font-weight: bold;
     z-index: 10;
 
-    font-size: 55px;
+    font-size: 52px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), inset 0 -3px 0 rgba(0, 0, 0, .22);
+
+    // Emblem behind the number
+    &:before {
+      content: "";
+      position: absolute;
+      top: 14%;
+      right: 14%;
+      bottom: 14%;
+      left: 14%;
+      z-index: -1;
+      opacity: .17;
+      background: currentColor;
+      -webkit-mask-position: center;
+      mask-position: center;
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+    }
+
+    // Name of the stop
+    &:after {
+      position: absolute;
+      right: 0;
+      bottom: 8px;
+      left: 0;
+      font-family: $font-type;
+      font-size: 11px;
+      line-height: 1;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
   }
 
   // Movement transition
@@ -331,86 +695,220 @@ hr {
   -moz-transition-property: -moz-transform;
   transition-property: transform;
 
-  $base: 2;
-  $exponent: 1;
-  $limit: 11;
+  @each $stop in $stops {
+    $value: map-get($stop, value);
 
-  // Colors for all 11 states, false = no special color
-  $special-colors: false false, // 2
-                   false false, // 4
-                   #f78e48 true, // 8
-                   #fc5e2e true, // 16
-                   #ff3333 true, // 32
-                   #ff0000 true, // 64
-                   false true, // 128
-                   false true, // 256
-                   false true, // 512
-                   false true, // 1024
-                   false true; // 2048
-
-  // Build tile colors
-  @while $exponent <= $limit {
-    $power: pow($base, $exponent);
-
-    &.tile-#{$power} .tile-inner {
-      // Calculate base background color
-      $gold-percent: ($exponent - 1) / ($limit - 1) * 100;
-      $mixed-background: mix($tile-gold-color, $tile-color, $gold-percent);
-
-      $nth-color: nth($special-colors, $exponent);
-
-      $special-background: nth($nth-color, 1);
-      $bright-color: nth($nth-color, 2);
-
-      @if $special-background {
-        $mixed-background: mix($special-background, $mixed-background, 55%);
-      }
-
-      @if $bright-color {
-        color: $bright-text-color;
-      }
-
-      // Set background
-      background: $mixed-background;
-
-      // Add glow
-      $glow-opacity: max($exponent - 4, 0) / ($limit - 4);
-
-      @if not $special-background {
-        box-shadow: 0 0 30px 10px rgba($tile-gold-glow-color, $glow-opacity / 1.8),
-                    inset 0 0 0 1px rgba(white, $glow-opacity / 3);
-      }
+    &.tile-#{$value} .tile-inner {
+      @include tile-face($stop);
 
       // Adjust font size for bigger numbers
-      @if $power >= 100 and $power < 1000 {
-        font-size: 45px;
+      @if $value >= 10 and $value < 100 {
+        font-size: 46px;
+
+        @include smaller($mobile-threshold) {
+          font-size: 26px;
+        }
+      } @else if $value >= 100 and $value < 1000 {
+        font-size: 38px;
 
         // Media queries placed here to avoid carrying over the rest of the logic
         @include smaller($mobile-threshold) {
-          font-size: 25px;
+          font-size: 21px;
         }
-      } @else if $power >= 1000 {
-        font-size: 35px;
+      } @else if $value >= 1000 {
+        font-size: 30px;
 
         @include smaller($mobile-threshold) {
-          font-size: 15px;
+          font-size: 16px;
         }
       }
     }
+  }
 
-    $exponent: $exponent + 1;
+  // Corrugated steel
+  &.tile-128 .tile-inner {
+    background-image: repeating-linear-gradient(90deg, rgba(0, 0, 0, .16) 0, rgba(0, 0, 0, .16) 3px, transparent 3px, transparent 8px);
+  }
+
+  // Furnace light
+  &.tile-256 .tile-inner {
+    box-shadow: inset 0 0 0 1px #ff8a3d, inset 0 -14px 22px rgba(255, 106, 31, .4), 0 0 16px rgba(255, 106, 31, .4);
+  }
+
+  &.tile-512 .tile-inner {
+    box-shadow: inset 0 0 0 2px #dbe1e5, 0 0 14px rgba(219, 230, 238, .3);
+  }
+
+  // A single lamp in the dark
+  &.tile-1024 .tile-inner {
+    box-shadow: inset 0 0 0 1px #fff, 0 0 26px 6px rgba(255, 233, 174, .55);
+  }
+
+  &.tile-2048 .tile-inner {
+    box-shadow: inset 0 0 0 2px #fbe48c, 0 0 32px 10px rgba(251, 228, 140, .5);
   }
 
   // Super tiles (above 2048)
   &.tile-super .tile-inner {
-    color: $bright-text-color;
-    background: mix(#333, $tile-gold-color, 95%);
+    @include tile-face($encore);
 
-    font-size: 30px;
+    font-size: 26px;
 
     @include smaller($mobile-threshold) {
-      font-size: 10px;
+      font-size: 13px;
     }
+  }
+}
+
+// The stage follows the highest tile on the board. All stops up to the highest
+// one are present in the cascade, so the last matching rule wins.
+$stop-index: 1;
+
+@each $stop in $stops {
+  html:has(.tile-#{map-get($stop, value)}) {
+    @include stage-colors($stop);
+    --stop: #{$stop-index};
+  }
+
+  html:has(.tile-#{map-get($stop, value)}) .road-stop:nth-child(-n+#{$stop-index}) {
+    background: var(--dot);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  .road-stop:nth-child(#{$stop-index}) {
+    --dot: #{map-get($stop, bg)};
+  }
+
+  html:has(.tile-#{map-get($stop, value)}) .road-caption:before {
+    content: "Now: #{map-get($stop, name)}";
+  }
+
+  @if $stop-index < length($stops) {
+    $next: nth($stops, $stop-index + 1);
+
+    html:has(.tile-#{map-get($stop, value)}) .road-caption:after {
+      content: "Next, at #{map-get($next, value)}: #{map-get($next, name)}";
+    }
+  } @else {
+    html:has(.tile-#{map-get($stop, value)}) .road-caption:after {
+      content: "Keep walking";
+    }
+  }
+
+  $stop-index: $stop-index + 1;
+}
+
+html:has(.tile-super) {
+  @include stage-colors($encore);
+}
+
+html:has(.tile-super) .road-caption:before {
+  content: "Now: Encore";
+}
+
+html:has(.tile-super) .road-caption:after {
+  content: "We sing it again";
+}
+
+// The road: progress from the bar, down through Hadestown, back to spring
+.road {
+  margin-top: 24px;
+}
+
+.road-track {
+  position: relative;
+  height: 40px;
+}
+
+.road-route {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  // Unwalked road
+  &:before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    left: 6px;
+    height: 2px;
+    background: rgba($cream, .28);
+  }
+
+  // Walked road
+  &:after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: calc((100% - 12px) * (var(--stop) - 1) / 10);
+    height: 2px;
+    background: var(--accent);
+    @include transition(width 600ms ease);
+  }
+}
+
+.road-stop {
+  position: relative;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #0b0907;
+  box-shadow: 0 0 0 1px rgba($cream, .4);
+
+  &:first-child {
+    background: var(--dot);
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  // The wall splits the road in two
+  &:nth-child(7) {
+    border-radius: 1px;
+    height: 20px;
+  }
+}
+
+.road-marker {
+  position: absolute;
+  top: 0;
+  left: calc(6px + (100% - 12px) * (var(--stop) - 1) / 10);
+  width: 18px;
+  height: 24px;
+  margin-left: -9px;
+  background: var(--accent);
+  -webkit-mask: $icon-lantern center / contain no-repeat;
+  mask: $icon-lantern center / contain no-repeat;
+  @include transition(left 600ms ease);
+}
+
+.road-caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 12px;
+  margin: 8px 0 0;
+  font-family: $font-type;
+  font-size: 14px;
+  line-height: 1.4;
+
+  &:before {
+    content: "Now: #{map-get($first-stop, name)}";
+    color: var(--accent);
+  }
+
+  &:after {
+    content: "Next, at #{map-get(nth($stops, 2), value)}: #{map-get(nth($stops, 2), name)}";
+    color: rgba($cream, .82);
   }
 }
 
@@ -453,12 +951,18 @@ hr {
 
 .above-game {
   @include clearfix;
+  margin-top: 8px;
 }
 
 .game-intro {
   float: left;
-  line-height: 42px;
+  width: 66%;
+  line-height: 1.35;
   margin-bottom: 0;
+
+  strong {
+    white-space: nowrap;
+  }
 }
 
 .restart-button {
@@ -469,17 +973,38 @@ hr {
 }
 
 .game-explanation {
-  margin-top: 50px;
+  margin-top: 56px;
+}
+
+.fan-note {
+  font-style: italic;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    -webkit-transition: none;
+    transition: none;
+  }
+
+  .revolve, .lamp, .game-container .game-message.game-won:before {
+    -webkit-animation: none;
+    animation: none;
+  }
+
+  .road-marker, .road-route:after {
+    -webkit-transition: none;
+    transition: none;
+  }
 }
 
 @include smaller($mobile-threshold) {
   // Redefine variables for smaller screens
-  $field-width: 280px;
-  $grid-spacing: 10px;
-  $grid-row-cells: 4;
-  $tile-size: ($field-width - $grid-spacing * ($grid-row-cells + 1)) / $grid-row-cells;
-  $tile-border-radius: 3px;
-  $game-container-margin-top: 17px;
+  $field-width: 280px !global;
+  $grid-spacing: 10px !global;
+  $grid-row-cells: 4 !global;
+  $tile-size: ($field-width - $grid-spacing * ($grid-row-cells + 1)) / $grid-row-cells !global;
+  $tile-border-radius: 3px !global;
+  $game-container-margin-top: 24px !global;
 
   html, body {
     font-size: 15px;
@@ -490,20 +1015,26 @@ hr {
     padding: 0 20px;
   }
 
+  .kicker {
+    font-size: 10px;
+  }
+
   h1.title {
-    font-size: 27px;
-    margin-top: 15px;
+    font-size: 34px;
+    margin-top: 2px;
   }
 
   .container {
     width: $field-width;
     margin: 0 auto;
+    padding-bottom: 40px;
   }
 
   .score-container, .best-container {
     margin-top: 0;
-    padding: 15px 10px;
+    padding: 15px 6px;
     min-width: 40px;
+    font-size: 15px;
   }
 
   .heading {
@@ -515,7 +1046,7 @@ hr {
     width: 55%;
     display: block;
     box-sizing: border-box;
-    line-height: 1.65;
+    line-height: 1.4;
   }
 
   .restart-button {
@@ -526,17 +1057,58 @@ hr {
     margin-top: 2px;
   }
 
+  .road {
+    margin-top: 12px;
+  }
+
+  .road-track {
+    height: 34px;
+  }
+
+  .road-caption {
+    font-size: 12px;
+  }
+
+  .game-explanation {
+    margin-top: 40px;
+  }
+
+  // One lamp, tucked into the top margin, clear of the title and score
+  .lamp:nth-child(1), .lamp:nth-child(3) {
+    display: none;
+  }
+
+  .lamp:nth-child(2) {
+    height: 1px;
+  }
+
+  .lamp:after {
+    left: -300px;
+    width: 600px;
+    height: 520px;
+  }
+
+  .floor {
+    height: 28px;
+  }
+
   // Render the game field at the right width
   @include game-field;
 
   // Rest of the font-size adjustments in the tile class
   .tile .tile-inner {
-    font-size: 35px;
+    font-size: 30px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14);
+
+    // Too small to read on a 58px tile; the road caption names the stop instead
+    &:after {
+      display: none;
+    }
   }
 
   .game-message {
     p {
-      font-size: 30px !important;
+      font-size: 26px !important;
       height: 30px !important;
       line-height: 30px !important;
       margin-top: 90px !important;
@@ -544,6 +1116,12 @@ hr {
 
     .lower {
       margin-top: 30px !important;
+    }
+
+    a {
+      margin-left: 4px !important;
+      padding: 0 10px !important;
+      font-size: 13px;
     }
   }
 }

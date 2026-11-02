@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>2048</title>
+  <title>2048: Hadestown</title>
 
   <link href="style/main.css" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico">
@@ -17,9 +17,20 @@
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
 </head>
 <body>
+  <div class="stage" aria-hidden="true">
+    <div class="revolve"></div>
+    <span class="lamp"></span>
+    <span class="lamp"></span>
+    <span class="lamp"></span>
+    <div class="floor"></div>
+  </div>
+
   <div class="container">
     <div class="heading">
-      <h1 class="title">2048</h1>
+      <div class="title-block">
+        <p class="kicker">Hadestown fan edition</p>
+        <h1 class="title">2048</h1>
+      </div>
       <div class="scores-container">
         <div class="score-container">0</div>
         <div class="best-container">0</div>
@@ -27,16 +38,36 @@
     </div>
 
     <div class="above-game">
-      <p class="game-intro">Join the numbers and get to the <strong>2048 tile!</strong></p>
-      <a class="restart-button">New Game</a>
+      <p class="game-intro">Join the numbers on the road to Hadestown and back. Get to the <strong>2048 tile!</strong></p>
+      <a class="restart-button">Start Again</a>
+    </div>
+
+    <div class="road">
+      <div class="road-track">
+        <div class="road-marker"></div>
+        <ol class="road-route">
+          <li class="road-stop"><span class="sr-only">2: The Bar</span></li>
+          <li class="road-stop"><span class="sr-only">4: The Flower</span></li>
+          <li class="road-stop"><span class="sr-only">8: Summer</span></li>
+          <li class="road-stop"><span class="sr-only">16: Autumn</span></li>
+          <li class="road-stop"><span class="sr-only">32: Winter</span></li>
+          <li class="road-stop"><span class="sr-only">64: The Railroad</span></li>
+          <li class="road-stop"><span class="sr-only">128: The Wall</span></li>
+          <li class="road-stop"><span class="sr-only">256: The Mine</span></li>
+          <li class="road-stop"><span class="sr-only">512: Hades</span></li>
+          <li class="road-stop"><span class="sr-only">1024: The Walk</span></li>
+          <li class="road-stop"><span class="sr-only">2048: Spring</span></li>
+        </ol>
+      </div>
+      <p class="road-caption" aria-hidden="true"></p>
     </div>
 
     <div class="game-container">
       <div class="game-message">
         <p></p>
         <div class="lower">
-	        <a class="keep-playing-button">Keep going</a>
-          <a class="retry-button">Try again</a>
+	        <a class="keep-playing-button">Keep walking</a>
+          <a class="retry-button">Sing it again</a>
         </div>
       </div>
 
@@ -77,7 +108,7 @@
     </p>
     <hr>
     <p>
-    <strong class="important">Note:</strong> This site is the official version of 2048. You can play it on your phone via <a href="http://git.io/2048">http://git.io/2048.</a> All other apps or sites are derivatives or fakes, and should be used with caution.
+    <strong class="important">Note:</strong> <span class="fan-note">An unofficial fan theme, not affiliated with the show. Hadestown is by Ana&iuml;s Mitchell, developed with Rachel Chavkin.</span>
     </p>
     <hr>
     <p>
